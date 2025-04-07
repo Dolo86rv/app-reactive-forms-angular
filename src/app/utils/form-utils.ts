@@ -1,5 +1,8 @@
-import { FormArray, FormGroup, ValidationErrors } from '@angular/forms';
+import { AbstractControl, FormArray, FormGroup, ValidationErrors } from '@angular/forms';
 export class FormUtils{
+  static namePattern = '([a-zA-Z]+) ([a-zA-Z]+)';
+  static emailPattern = '^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$';
+  static notOnlySpacesPattern = '^[a-zA-Z0-9]+$';
 
   static getTextError(errors: ValidationErrors, text: string = ''): string | null {
     for( const key of Object.keys(errors)) {
@@ -10,6 +13,16 @@ export class FormUtils{
           return `Minimo ${errors['minlength'].requiredLength} ${text}`;
         case 'min':
           return `El valor minimo es ${errors['min'].min}`;
+        case 'email':
+            return `El valor ingresado no es un correo válido`;
+        case 'pattern':
+          if(errors['pattern'].requiredPattern === FormUtils.emailPattern){
+            return `El valor ingresado no es un correo válido`;
+          }
+
+        return 'Error de patrón contra expresión regular';
+        default:
+          return 'Error desconocido';
       }
     }
     return null;
@@ -43,6 +56,25 @@ export class FormUtils{
     const errors = formArray.controls[index].errors ?? {};
 
     return FormUtils.getTextError(errors, "juegos");
+  }
+
+  static getnamePattern(form: FormGroup, nameComplete: string): boolean | null {
+    if (!form.controls[nameComplete]) {
+      return null;
+    }
+    const regex = /^([a-zA-Z]+) ([a-zA-Z]+)$/;
+    const errors = regex.test(form.controls[nameComplete].value)
+
+    return errors;
+  }
+
+  static  isFieldOneEqualFieldTwo(field1: string, field2: string){
+    return (formGroup: AbstractControl) => {
+      const field1Control = formGroup.get(field1)?.value;
+      const field2Control = formGroup.get(field2)?.value;
+
+      return field1Control === field2Control ? null : {passwordsNotEqual: true};
+    }
   }
 
 }
